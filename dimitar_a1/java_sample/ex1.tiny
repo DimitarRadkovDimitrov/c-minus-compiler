@@ -1,0 +1,3 @@
+read xabcdefghij;
+x := x - 1;
+write x

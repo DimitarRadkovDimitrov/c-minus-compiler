@@ -1,0 +1,16 @@
+/* Test 2: Variable and Function redeclaration */
+
+int func(void)
+{    
+}
+
+void func(void)
+{
+}
+
+void main(void)
+{
+    int x;
+    int y;
+    int x;
+}

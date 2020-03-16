@@ -1,0 +1,12 @@
+/* Test 1: No Semantic errors */
+
+int dimitar[10];
+int dimitrov;
+
+void main(int x, int y)
+{
+}
+
+void test(int x[])
+{
+}

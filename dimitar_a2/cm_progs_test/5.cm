@@ -1,0 +1,19 @@
+/* Test 5: Invalid type on line 3, invalid argument list on lines 15 and 16 */
+
+char test(int x, int y)
+{
+    int z;
+    z = x * y;
+    return z;
+}
+
+int main(void)
+{
+    int x;
+    int y;
+
+    x = test(int a, int b);
+    y = test(x; y);
+    
+    return 0;
+}

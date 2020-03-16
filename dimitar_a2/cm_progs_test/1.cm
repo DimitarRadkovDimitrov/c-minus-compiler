@@ -1,0 +1,12 @@
+/* Test 1: Compile without errors */
+
+int test(void)
+{
+    return 3;
+}
+
+void main(void)
+{
+    int x;
+    x = test();
+}

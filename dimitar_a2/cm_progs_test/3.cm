@@ -1,0 +1,11 @@
+/* Test 3: Missing semicolons on lines 5 and 7, missing closing brace on 11 */
+
+void main(void)
+{
+    int x
+    int y;
+    int z
+
+    x = 10;
+    y = 2;
+    z = x + y;

@@ -1,0 +1,13 @@
+/* Test 4: Invalid comparison expression on line 8, invalid assignment expression on line 12 */
+
+int main(void)
+{
+    int x;
+    int y;
+
+    if (x == y != x)
+    {
+        ;
+    }
+    x = y -;
+}
