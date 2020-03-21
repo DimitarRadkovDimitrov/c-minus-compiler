@@ -14,6 +14,18 @@ public class SymbolTable
         this.declarations.add(new HashMap<String, Declaration>());
     }
 
+    public Declaration getSymbol(String id)
+    {
+        for (HashMap<String, Declaration> block: declarations)
+        {
+            if (block.containsKey(id))
+            {
+                return block.get(id);
+            }
+        }
+        return null;
+    }
+
     public boolean isDefined(String id)
     {
         for (HashMap<String, Declaration> block: declarations)

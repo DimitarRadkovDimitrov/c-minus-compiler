@@ -1,0 +1,15 @@
+/* Test 5: If test conditions (int) and matching function calls and return expressions */
+
+void foo(void)
+{
+    return;
+}
+
+void foo2(void)
+{
+}
+
+void main(void)
+{
+    return 1 + 4 / 3 * 12 <= 2;
+}

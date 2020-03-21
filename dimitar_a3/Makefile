@@ -1,10 +1,10 @@
 JAVA=java
 JAVAC=javac
-CLASSPATH=-classpath /Users/Dimitar/cup/java-cup-11b.jar:.
-JFLEX=/Users/Dimitar/jflex-1.7.0/bin/jflex
-CUP=$(JAVA) $(CLASSPATH) java_cup.Main -expect 8 <
+CLASSPATH=-cp /c/Users/Dimitar/Desktop/java_cup/cup.jar:.
+#JFLEX=/c/Users/Dimitar/Desktop/jflex-1.8.1/bin/jflex
+CUP=$(JAVA) $(CLASSPATH) java_cup.Main -expect 8
 #CLASSPATH=-classpath /usr/share/java/cup.jar:.
-#JFLEX=jflex
+JFLEX=jflex
 #CUP=cup
 
 all: CM.class

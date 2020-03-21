@@ -1,0 +1,16 @@
+/* Test 4: Match two sides of assignment and operands */
+
+void foo(void)
+{
+}
+
+void main(void)
+{
+    int x;  
+    void y;
+
+    x = 1 + 2 / 9 * 1 - 3;
+    x = 3 != 4;
+    y = 3;
+    x = x + foo();
+}

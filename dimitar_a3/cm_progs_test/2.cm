@@ -2,6 +2,7 @@
 
 int func(void)
 {    
+    z = 1 + 3;
 }
 
 void func(void)

@@ -1,0 +1,17 @@
+/* Test 3: Non-int Array Index Result */
+
+void foo(void)
+{
+}
+
+int main(void)
+{
+    void t;
+    int x[10];
+
+    x[t] = 2;
+    x[1 + 2 / 4 != 2] = 1;
+    x[foo()] = 0; 
+
+    return 0;
+}

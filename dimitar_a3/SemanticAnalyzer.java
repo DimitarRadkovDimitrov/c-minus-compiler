@@ -6,11 +6,14 @@ public class SemanticAnalyzer implements AbsynVisitor
     final static int SPACES = 4;
 
     private SymbolTable symbolTable;
+    private TypeChecker typeChecker;
+
     boolean inFunctionSignature = false;
 
-    public SemanticAnalyzer(SymbolTable symbolTable)
+    public SemanticAnalyzer(SymbolTable symbolTable, TypeChecker typeChecker)
     {
         this.symbolTable = symbolTable;
+        this.typeChecker = typeChecker;
     }
 
     public void printBlock(List<SymbolTable.Declaration> declarations)
@@ -41,19 +44,17 @@ public class SemanticAnalyzer implements AbsynVisitor
         {
             SemanticError.redeclarationError(dec);
         }
-
-        arrayDec.typ.accept(this, level);
-        
-        if (arrayDec.size != null)
-        {
-            arrayDec.size.accept(this, level);
-        }
     }
 
     public void visit(AssignExp exp, int level)
     {
         exp.lhs.accept(this, level);
         exp.rhs.accept(this, level);
+
+        if (!typeChecker.typeCheck(exp))
+        {
+            SemanticError.voidTypeError(exp.row + 1, exp.col + 1, "Not same operand types");
+        }
     }
 
     public void visit(CallExp callExp, int level)
@@ -143,12 +144,16 @@ public class SemanticAnalyzer implements AbsynVisitor
         }
         symbolTable.pushBlock();
 
-        functionDec.result.accept(this, level);
+        if (!typeChecker.typeCheck(functionDec))
+        {
+            SemanticError.invalidFunctionReturnError(functionDec);
+        }        
 
         if (functionDec.params != null)
         {
             functionDec.params.accept(this, level);
         }
+
         functionDec.body.accept(this, level);
 
         printBlock(symbolTable.popBlock());
@@ -161,6 +166,11 @@ public class SemanticAnalyzer implements AbsynVisitor
         ifExp.test.accept(this, level);
         ifExp.then.accept(this, level);
         
+        if (!typeChecker.typeCheck(ifExp.test, true))
+        {
+            SemanticError.voidTypeError(ifExp.row + 1, ifExp.col + 1, "INT");
+        }
+
         if (ifExp.els != null)
         {
             ifExp.els.accept(this, level);
@@ -169,6 +179,26 @@ public class SemanticAnalyzer implements AbsynVisitor
 
     public void visit(IndexVar indexVar, int level)
     {
+        if (!symbolTable.isDefined(indexVar.name))
+        {
+            SemanticError.undeclaredError(indexVar.name, indexVar.row + 1, indexVar.col + 1);
+            SymbolTable.Declaration dec = new SymbolTable.Declaration(
+                indexVar.name, 
+                new ArrayDec(
+                    indexVar.row,
+                    indexVar.col,
+                    new NameTy(indexVar.row, indexVar.col, NameTy.ERROR),
+                    indexVar.name,
+                    new IntExp(indexVar.row, indexVar.col, 0)
+                ));
+            symbolTable.pushDecToBlock(dec);
+        }
+    
+        if (!typeChecker.typeCheck(indexVar.index, true))
+        {
+            SemanticError.invalidArrayIndexError(indexVar);
+        }
+
         indexVar.index.accept(this, level);
     }
 
@@ -184,6 +214,11 @@ public class SemanticAnalyzer implements AbsynVisitor
     {
         opExp.left.accept(this, level);
         opExp.right.accept(this, level);
+
+        if (!typeChecker.typeCheck(opExp, true))
+        {
+            SemanticError.voidTypeError(opExp.row + 1, opExp.col + 1, "");
+        } 
     }
 
     public void visit(ReturnExp returnExp, int level)
@@ -201,7 +236,22 @@ public class SemanticAnalyzer implements AbsynVisitor
         simpleDec.typ.accept(this, level);
     }
 
-    public void visit(SimpleVar simpleVar, int level){}
+    public void visit(SimpleVar simpleVar, int level)
+    {
+        if (!symbolTable.isDefined(simpleVar.name))
+        {
+            SemanticError.undeclaredError(simpleVar.name, simpleVar.row + 1, simpleVar.col + 1);
+            SymbolTable.Declaration dec = new SymbolTable.Declaration(
+                simpleVar.name, 
+                new SimpleDec(
+                    simpleVar.row,
+                    simpleVar.col,
+                    new NameTy(simpleVar.row, simpleVar.col, NameTy.ERROR),
+                    simpleVar.name
+                ));
+            symbolTable.pushDecToBlock(dec);
+        }
+    }
 
     public void visit(VarDecList varDecList, int level)
     {
@@ -221,5 +271,10 @@ public class SemanticAnalyzer implements AbsynVisitor
     {
         whileExp.test.accept(this, level);
         whileExp.body.accept(this, level);
+
+        if (!typeChecker.typeCheck(whileExp.test, true))
+        {
+            SemanticError.voidTypeError(whileExp.row + 1, whileExp.col + 1, "INT");
+        }
     }
 }

@@ -11,7 +11,9 @@ class CM
             Absyn result = (Absyn)(p.parse().value);      
             if (result != null) 
             {
-                SemanticAnalyzer visitor = new SemanticAnalyzer(new SymbolTable());
+                SymbolTable symbolTable = new SymbolTable();
+                TypeChecker typeChecker = new TypeChecker(symbolTable);
+                SemanticAnalyzer visitor = new SemanticAnalyzer(symbolTable, typeChecker);
                 result.accept(visitor, 1); 
             }
         } 
