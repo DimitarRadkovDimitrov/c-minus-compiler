@@ -72,6 +72,15 @@ public class TypeChecker
         return false;
     }
 
+    public boolean typeCheck(CallExp callExp)
+    {
+        SymbolTable.Declaration functionDec = symbolTable.getSymbol(callExp.func);
+        VarDecList params = ((FunctionDec) functionDec.dec).params;
+        ExpList args = callExp.args;
+
+        return typeCheck(params, args);
+    }
+
     public boolean typeCheck(CallExp callExp, boolean integer)
     {
         SymbolTable.Declaration functionDec = symbolTable.getSymbol(callExp.func);
@@ -147,6 +156,64 @@ public class TypeChecker
     public boolean typeCheck(ReturnExp returnExp, boolean integer)
     {
         return typeCheck(returnExp.exp, integer) && integer;
+    }
+
+    public boolean typeCheck(VarDecList params, ExpList args)
+    {
+        if (params == null && args == null)
+        {
+            return true;
+        }
+        else if (params == null || args == null)
+        {
+            return false;
+        }
+
+        while (params != null && params.head != null)
+        {
+            if (args == null || args.head == null)
+            {
+                return false;
+            }
+
+            VarDec param = params.head;
+            Exp arg = args.head;
+            boolean integer = false;
+
+            if (param instanceof SimpleDec)
+            {
+                SimpleDec dec = (SimpleDec) param;
+
+                if (dec.typ.typ == NameTy.INT)
+                {
+                    integer = true;
+                }
+            }
+            else if (param instanceof ArrayDec)
+            {
+                ArrayDec dec = (ArrayDec) param;
+
+                if (dec.typ.typ == NameTy.INT)
+                {
+                    integer = true;
+                }
+            }
+
+            if (!typeCheck(arg, integer))
+            {
+                return false;
+            }
+
+            args = args.tail;
+            params = params.tail;
+        }
+
+        if (args != null)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public boolean typeCheck(VarExp varExp)

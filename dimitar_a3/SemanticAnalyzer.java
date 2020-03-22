@@ -12,8 +12,26 @@ public class SemanticAnalyzer implements AbsynVisitor
 
     public SemanticAnalyzer(SymbolTable symbolTable, TypeChecker typeChecker)
     {
+        SymbolTable.Declaration inputFunctionDec = new SymbolTable.Declaration(
+            "input",
+            new FunctionDec(0, 0, new NameTy(0, 0, NameTy.INT), "input", null, null) 
+        );
+        SymbolTable.Declaration outputFunctionDec = new SymbolTable.Declaration(
+            "output",
+            new FunctionDec(
+                0,
+                0, 
+                new NameTy(0, 0, NameTy.VOID),
+                "output",
+                new VarDecList(new SimpleDec(0, 0, new NameTy(0, 0, NameTy.INT), "x"), null),
+                null
+            ) 
+        );
+
         this.symbolTable = symbolTable;
         this.typeChecker = typeChecker;
+        this.symbolTable.pushDecToBlock(inputFunctionDec);
+        this.symbolTable.pushDecToBlock(outputFunctionDec);
     }
 
     public void printBlock(List<SymbolTable.Declaration> declarations)
@@ -59,9 +77,19 @@ public class SemanticAnalyzer implements AbsynVisitor
 
     public void visit(CallExp callExp, int level)
     {
+        if (!symbolTable.isDefined(callExp.func))
+        {
+            SemanticError.undeclaredError(callExp.func, callExp.row + 1, callExp.col + 1);
+        }
+
         if (callExp.args != null)
         {
             callExp.args.accept(this, level);
+        }
+
+        if (!typeChecker.typeCheck(callExp))
+        {
+            SemanticError.invalidFunctionCallError(callExp);
         }
     }
 
@@ -144,17 +172,17 @@ public class SemanticAnalyzer implements AbsynVisitor
         }
         symbolTable.pushBlock();
 
-        if (!typeChecker.typeCheck(functionDec))
-        {
-            SemanticError.invalidFunctionReturnError(functionDec);
-        }        
-
         if (functionDec.params != null)
         {
             functionDec.params.accept(this, level);
         }
 
         functionDec.body.accept(this, level);
+
+        if (!typeChecker.typeCheck(functionDec))
+        {
+            SemanticError.invalidFunctionReturnError(functionDec);
+        }        
 
         printBlock(symbolTable.popBlock());
         indent();

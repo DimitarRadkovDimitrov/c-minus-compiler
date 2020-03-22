@@ -9,7 +9,16 @@ void foo2(void)
 {
 }
 
+void test(int x, int y)
+{
+}
+
 void main(void)
 {
+    int x;
+    int y;
+    void z;
+
+    foo2(z);
     return 1 + 4 / 3 * 12 <= 2;
 }

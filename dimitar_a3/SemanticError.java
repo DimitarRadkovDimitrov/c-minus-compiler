@@ -10,17 +10,23 @@ public class SemanticError
         printErrorMessage(indexVar.index.row + 1, indexVar.index.col + 1, message);
     }
 
+    public static void invalidFunctionCallError(CallExp functionCall)
+    {
+        String message = String.format("Function %s argument list does not match parameter list.", functionCall.func);
+        printErrorMessage(functionCall.row + 1, functionCall.col + 1, message);
+    }
+
     public static void invalidFunctionReturnError(FunctionDec functionDec)
     {
         String message = "";
 
         if (functionDec.result.typ == NameTy.INT)
         {
-            message = String.format("Function %s has return type %s. Expected INT.", functionDec.func, "VOID");
+            message = String.format("Function %s has return type %s. Return expression evaluates to VOID.", functionDec.func, "INT");
         }
         else if (functionDec.result.typ == NameTy.VOID)
         {
-            message = String.format("Function %s has return type %s. Expected VOID or NULL.", functionDec.func, "INT");
+            message = String.format("Function %s has return type %s. Return expression evaluates to INT.", functionDec.func, "VOID");
         }
         printErrorMessage(functionDec.row + 1, functionDec.col + 1, message);
     }

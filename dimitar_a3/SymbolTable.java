@@ -16,8 +16,9 @@ public class SymbolTable
 
     public Declaration getSymbol(String id)
     {
-        for (HashMap<String, Declaration> block: declarations)
+        for (int i = declarations.size() - 1; i >= 0; i--)
         {
+            HashMap<String, Declaration> block = declarations.get(i);
             if (block.containsKey(id))
             {
                 return block.get(id);
