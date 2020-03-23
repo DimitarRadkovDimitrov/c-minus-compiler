@@ -30,10 +30,11 @@ public class SemanticError
         }
         printErrorMessage(functionDec.row + 1, functionDec.col + 1, message);
     }
-    public static void voidTypeError(int row, int col, String expected)
+
+    public static void redeclarationError(SymbolTable.Declaration dec)
     {
-        String message = String.format("Exp type is VOID. Expected %s.", expected);
-        printErrorMessage(row, col, message);
+        String message = String.format("%s is already defined in current block.", dec.name);
+        printErrorMessage(dec.dec.row + 1, dec.dec.col + 1, message);
     }
 
     public static void undeclaredError(String id, int row, int col)
@@ -42,10 +43,10 @@ public class SemanticError
         printErrorMessage(row, col, message);
     }
 
-    public static void redeclarationError(SymbolTable.Declaration dec)
+    public static void voidExpressionResultError(int row, int col)
     {
-        String message = String.format("%s is already defined in current block.", dec.name);
-        printErrorMessage(dec.dec.row + 1, dec.dec.col + 1, message);
+        String message = String.format("Exp result is of type VOID. Expected INT.");
+        printErrorMessage(row, col, message);
     }
 
     private static void printErrorMessage(int row, int col, String message)

@@ -71,7 +71,7 @@ public class SemanticAnalyzer implements AbsynVisitor
 
         if (!typeChecker.typeCheck(exp))
         {
-            SemanticError.voidTypeError(exp.row + 1, exp.col + 1, "Not same operand types");
+            SemanticError.voidExpressionResultError(exp.row + 1, exp.col + 1);
         }
     }
 
@@ -98,10 +98,7 @@ public class SemanticAnalyzer implements AbsynVisitor
         if (inFunctionSignature)
         {
             inFunctionSignature = false;
-            if (compoundExp.decs != null || compoundExp.exps != null)
-            {
-                level++;
-            }
+
             if (compoundExp.decs != null)
             {
                 compoundExp.decs.accept(this, level);
@@ -116,11 +113,6 @@ public class SemanticAnalyzer implements AbsynVisitor
             indent();
             System.out.printf("Entering a new block:\n");
             symbolTable.pushBlock();
-
-            if (compoundExp.decs != null || compoundExp.exps != null)
-            {
-                level++;
-            }
 
             if (compoundExp.decs != null)
             {
@@ -170,6 +162,7 @@ public class SemanticAnalyzer implements AbsynVisitor
         {
             SemanticError.redeclarationError(dec);
         }
+
         symbolTable.pushBlock();
 
         if (functionDec.params != null)
@@ -182,7 +175,7 @@ public class SemanticAnalyzer implements AbsynVisitor
         if (!typeChecker.typeCheck(functionDec))
         {
             SemanticError.invalidFunctionReturnError(functionDec);
-        }        
+        }
 
         printBlock(symbolTable.popBlock());
         indent();
@@ -193,15 +186,15 @@ public class SemanticAnalyzer implements AbsynVisitor
     {
         ifExp.test.accept(this, level);
         ifExp.then.accept(this, level);
-        
-        if (!typeChecker.typeCheck(ifExp.test, true))
-        {
-            SemanticError.voidTypeError(ifExp.row + 1, ifExp.col + 1, "INT");
-        }
 
         if (ifExp.els != null)
         {
             ifExp.els.accept(this, level);
+        }
+        
+        if (!typeChecker.typeCheck(ifExp.test, true))
+        {
+            SemanticError.voidExpressionResultError(ifExp.row + 1, ifExp.col + 1);
         }
     }
 
@@ -221,13 +214,13 @@ public class SemanticAnalyzer implements AbsynVisitor
                 ));
             symbolTable.pushDecToBlock(dec);
         }
+
+        indexVar.index.accept(this, level);
     
         if (!typeChecker.typeCheck(indexVar.index, true))
         {
             SemanticError.invalidArrayIndexError(indexVar);
         }
-
-        indexVar.index.accept(this, level);
     }
 
     public void visit(IntExp intExp, int level){}
@@ -245,7 +238,7 @@ public class SemanticAnalyzer implements AbsynVisitor
 
         if (!typeChecker.typeCheck(opExp, true))
         {
-            SemanticError.voidTypeError(opExp.row + 1, opExp.col + 1, "");
+            SemanticError.voidExpressionResultError(opExp.row + 1, opExp.col + 1);
         } 
     }
 
@@ -302,7 +295,7 @@ public class SemanticAnalyzer implements AbsynVisitor
 
         if (!typeChecker.typeCheck(whileExp.test, true))
         {
-            SemanticError.voidTypeError(whileExp.row + 1, whileExp.col + 1, "INT");
+            SemanticError.voidExpressionResultError(whileExp.row + 1, whileExp.col + 1);
         }
     }
 }

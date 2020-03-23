@@ -235,18 +235,16 @@ public class TypeChecker
         else if (varExp.variable instanceof SimpleVar)
         {
             SimpleVar simpleVar = (SimpleVar) varExp.variable;
-            SimpleDec simpleDec = (SimpleDec) symbolTable.getSymbol(simpleVar.name).dec;
-
-            if (simpleDec.typ.typ == NameTy.VOID)
+            Dec dec = symbolTable.getSymbol(simpleVar.name).dec;
+            
+            if ((dec instanceof SimpleDec && ((SimpleDec) dec).typ.typ == NameTy.VOID) || 
+                (dec instanceof ArrayDec && ((ArrayDec) dec).typ.typ == NameTy.VOID))
             {
                 return false;
             }
-            else if (simpleDec.typ.typ == NameTy.INT || simpleDec.typ.typ == NameTy.ERROR)
-            {
-                return true;
-            }
+            return true;
         }
-
+        
         return false;
     }
 }

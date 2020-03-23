@@ -3,6 +3,7 @@
 int func(void)
 {    
     z = 1 + 3;
+    return z;
 }
 
 void func(void)
