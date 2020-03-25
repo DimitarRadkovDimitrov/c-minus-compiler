@@ -18,7 +18,7 @@ public class TypeChecker
         }
         else if (exp instanceof IntExp)
         {
-            return typeCheck((IntExp) exp);
+            return typeCheck((IntExp) exp, integer);
         }
         else if (exp instanceof OpExp)
         {
@@ -131,9 +131,9 @@ public class TypeChecker
         }
     }
 
-    public boolean typeCheck(IntExp intExp)
+    public boolean typeCheck(IntExp intExp, boolean integer)
     {
-        return true;
+        return integer == true;
     }
 
     public boolean typeCheck(OpExp opExp, boolean integer)

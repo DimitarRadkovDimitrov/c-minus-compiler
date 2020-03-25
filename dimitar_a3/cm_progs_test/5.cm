@@ -1,4 +1,12 @@
-/* Test 5: Int return from void function.  */
+/* 
+    Test 5:
+    - Undeclared variable x 2
+    - Invalid return from void function
+    - Void assignment to int variable
+    - Invalid test cond for ifexp
+    - Invalid test cond for whileExp
+    - Invalid opExp x 2
+*/
 
 int func(void)
 {

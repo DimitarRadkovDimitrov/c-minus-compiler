@@ -1,4 +1,9 @@
-/* Test 3: Non-int array index exp, mismatch in operand types, assignment to void var */
+/* 
+    Test 3: 
+    - Non-int array index exp
+    - Mismatch in operand types
+    - Assignment to void var 
+*/
 
 void foo(void)
 {

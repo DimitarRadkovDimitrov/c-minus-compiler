@@ -49,6 +49,12 @@ public class SemanticError
         printErrorMessage(exp.row + 1, exp.col + 1, message);
     }
 
+    public static void voidTestConditionError(Exp exp)
+    {
+        String message = String.format("Test condition expression has result of type VOID. Expected INT.");
+        printErrorMessage(exp.row + 1, exp.col + 1, message);
+    }
+
     public static void voidTypeAssignmentError(int row, int col)
     {
         String message = String.format("Assignment to variable of type VOID.");

@@ -1,4 +1,7 @@
-/* Test 1: No Semantic errors */
+/* 
+    Test 1:
+    No Semantic errors 
+*/
 
 int dimitar[10];
 int dimitrov;

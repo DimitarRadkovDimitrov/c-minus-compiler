@@ -1,4 +1,9 @@
-/* Test 4: Invalid return types, test condition for if exp, and argument list */
+/* 
+    Test 4:
+    - Invalid return types
+    - Invalid test cond for ifexp
+    - Invalid argument list 
+*/
 
 void func(void)
 {

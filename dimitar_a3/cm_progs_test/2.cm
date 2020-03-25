@@ -1,4 +1,9 @@
-/* Test 2: Use z without declaration, declare y twice in same block, return int from void function foo */
+/* 
+    Test 2:
+    - Use z without declaration
+    - Declare y twice in same block
+    - Return int from void function foo 
+*/
 
 int func(void)
 {    

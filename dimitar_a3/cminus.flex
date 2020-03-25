@@ -28,7 +28,7 @@ import java_cup.runtime.*;
     return null;
 %eofval};
 
-COMMENT = "/*".*?"*/"
+COMMENT = "/*"[^*]~"*/"|"/*""*"+"/"
 ID = [_a-zA-Z][_a-zA-Z0-9]*
 NUM = [0-9]+
 NEWLINE = \r|\n|\r\n

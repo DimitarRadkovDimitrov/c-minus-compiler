@@ -222,6 +222,11 @@ public class SemanticAnalyzer implements AbsynVisitor
         {
             ifExp.els.accept(this, level);
         }
+
+        if (!typeChecker.typeCheck(ifExp.test, true))
+        {
+            SemanticError.voidTestConditionError(ifExp);
+        }
     }
 
     public void visit(IndexVar indexVar, int level)
@@ -318,5 +323,10 @@ public class SemanticAnalyzer implements AbsynVisitor
     {
         whileExp.test.accept(this, level);
         whileExp.body.accept(this, level);
+
+        if (!typeChecker.typeCheck(whileExp.test, true))
+        {
+            SemanticError.voidTestConditionError(whileExp);
+        }
     }
 }
