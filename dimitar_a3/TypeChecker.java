@@ -1,4 +1,5 @@
 import absyn.*;
+import java.util.Stack;
 
 public class TypeChecker
 {
@@ -11,11 +12,7 @@ public class TypeChecker
 
     public boolean typeCheck(Exp exp, boolean integer)
     {
-        if (exp instanceof AssignExp)
-        {
-            return typeCheck((AssignExp) exp);
-        }
-        else if (exp instanceof CallExp)
+        if (exp instanceof CallExp)
         {
             return typeCheck((CallExp) exp, integer);
         }
@@ -33,52 +30,9 @@ public class TypeChecker
         }
         else if (exp instanceof VarExp)
         {
-            return typeCheck((VarExp) exp);
+            return typeCheck((VarExp) exp, integer);
         }
         return false;
-    }
-    
-    public boolean typeCheck(AssignExp assignExp)
-    {
-        if (assignExp.lhs instanceof IndexVar)
-        {
-            IndexVar indexVar = (IndexVar) assignExp.lhs;
-            ArrayDec arrayDec = (ArrayDec) symbolTable.getSymbol(indexVar.name).dec;
-            
-            if (arrayDec.typ.typ == NameTy.VOID)
-            {
-                return false;
-            }
-            else if (arrayDec.typ.typ == NameTy.INT || arrayDec.typ.typ == NameTy.ERROR)
-            {
-                return typeCheck(assignExp.rhs, true);
-            }
-        }
-        else if (assignExp.lhs instanceof SimpleVar)
-        {
-            SimpleVar simpleVar = (SimpleVar) assignExp.lhs;
-            SimpleDec simpleDec = (SimpleDec) symbolTable.getSymbol(simpleVar.name).dec;
-
-            if (simpleDec.typ.typ == NameTy.VOID)
-            {
-                return false;
-            }
-            else if (simpleDec.typ.typ == NameTy.INT || simpleDec.typ.typ == NameTy.ERROR)
-            {
-                return typeCheck(assignExp.rhs, true);
-            }
-        }
-
-        return false;
-    }
-
-    public boolean typeCheck(CallExp callExp)
-    {
-        SymbolTable.Declaration functionDec = symbolTable.getSymbol(callExp.func);
-        VarDecList params = ((FunctionDec) functionDec.dec).params;
-        ExpList args = callExp.args;
-
-        return typeCheck(params, args);
     }
 
     public boolean typeCheck(CallExp callExp, boolean integer)
@@ -88,16 +42,12 @@ public class TypeChecker
         if (functionDec != null)
         {
             FunctionDec dec = (FunctionDec) functionDec.dec;
-            if (dec.result.typ == NameTy.INT)
+            if (dec.result.typ == NameTy.VOID)
             {
-                return integer;
+                return integer == false;
             }
-            else if (dec.result.typ == NameTy.VOID)
-            {
-                return !integer;
-            }
+            return integer == true;
         }
-
         return false;
     }
 
@@ -105,34 +55,72 @@ public class TypeChecker
     {
         if (functionDec.result.typ == NameTy.VOID)
         {
-            ExpList functionBody = functionDec.body.exps;
-            if (functionBody != null)
+            Stack<CompoundExp> blocks = new Stack<>();
+            blocks.add(functionDec.body);
+
+            while (!blocks.isEmpty())
             {
-                while (functionBody != null && functionBody.head != null)
+                CompoundExp block = blocks.pop();
+                ExpList expList = block.exps;
+
+                while (expList != null && expList.head != null)
                 {
-                    if (functionBody.head instanceof ReturnExp && 
-                        typeCheck((ReturnExp) functionBody.head, true))
+                    if (expList.head instanceof ReturnExp && typeCheck((ReturnExp) expList.head, true))
                     {
                         return false;
                     }
-                    functionBody = functionBody.tail;
+                    else if (expList.head instanceof CompoundExp)
+                    {
+                        blocks.add((CompoundExp) expList.head);
+                    }
+                    else if (expList.head instanceof IfExp)
+                    {
+                        if (((IfExp) expList.head).then instanceof CompoundExp)
+                        {
+                            blocks.add((CompoundExp) ((IfExp) expList.head).then);
+                        }
+                        else if (((IfExp) expList.head).then instanceof ReturnExp)
+                        {
+                            return !typeCheck((ReturnExp) ((IfExp) expList.head).then, true);
+                        }
+                    }
+                    expList = expList.tail;
                 }
             }
             return true;
         }
         else if (functionDec.result.typ == NameTy.INT)
         {
-            ExpList functionBody = functionDec.body.exps;
-            if (functionBody != null)
+            Stack<CompoundExp> blocks = new Stack<>();
+            blocks.add(functionDec.body);
+
+            while (!blocks.isEmpty())
             {
-                while (functionBody != null && functionBody.head != null)
+                CompoundExp block = blocks.pop();
+                ExpList expList = block.exps;
+
+                while (expList != null && expList.head != null)
                 {
-                    if (functionBody.head instanceof ReturnExp && 
-                        typeCheck((ReturnExp) functionBody.head, true))
+                    if (expList.head instanceof ReturnExp && typeCheck((ReturnExp) expList.head, true))
                     {
                         return true;
                     }
-                    functionBody = functionBody.tail;
+                    else if (expList.head instanceof CompoundExp)
+                    {
+                        blocks.add((CompoundExp) expList.head);
+                    }
+                    else if (expList.head instanceof IfExp)
+                    {
+                        if (((IfExp) expList.head).then instanceof CompoundExp)
+                        {
+                            blocks.add((CompoundExp) ((IfExp) expList.head).then);
+                        }
+                        else if (((IfExp) expList.head).then instanceof ReturnExp)
+                        {
+                            return typeCheck((ReturnExp) ((IfExp) expList.head).then, true);
+                        }
+                    }
+                    expList = expList.tail;
                 }
             }
             return false;
@@ -150,12 +138,12 @@ public class TypeChecker
 
     public boolean typeCheck(OpExp opExp, boolean integer)
     {
-        return typeCheck(opExp.left, integer) && typeCheck(opExp.right, integer) && integer;
+        return typeCheck(opExp.left, integer) && typeCheck(opExp.right, integer);
     }
 
     public boolean typeCheck(ReturnExp returnExp, boolean integer)
     {
-        return typeCheck(returnExp.exp, integer) && integer;
+        return typeCheck(returnExp.exp, integer);
     }
 
     public boolean typeCheck(VarDecList params, ExpList args)
@@ -216,7 +204,7 @@ public class TypeChecker
         return true;
     }
 
-    public boolean typeCheck(VarExp varExp)
+    public boolean typeCheck(VarExp varExp, boolean integer)
     {
         if (varExp.variable instanceof IndexVar)
         {
@@ -225,12 +213,9 @@ public class TypeChecker
             
             if (arrayDec.typ.typ == NameTy.VOID)
             {
-                return false;
+                return integer == false;
             }
-            else if (arrayDec.typ.typ == NameTy.INT || arrayDec.typ.typ == NameTy.ERROR)
-            {
-                return typeCheck(indexVar.index, true);
-            }
+            return integer == true;
         }
         else if (varExp.variable instanceof SimpleVar)
         {
@@ -240,9 +225,9 @@ public class TypeChecker
             if ((dec instanceof SimpleDec && ((SimpleDec) dec).typ.typ == NameTy.VOID) || 
                 (dec instanceof ArrayDec && ((ArrayDec) dec).typ.typ == NameTy.VOID))
             {
-                return false;
+                return integer == false;
             }
-            return true;
+            return integer == true;
         }
         
         return false;

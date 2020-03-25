@@ -1,4 +1,4 @@
-/* Test 3: Non-int Array Index Result */
+/* Test 3: Non-int array index exp, mismatch in operand types, assignment to void var */
 
 void foo(void)
 {
@@ -8,10 +8,11 @@ int main(void)
 {
     void t;
     int x[10];
+    int y;
 
-    x[t] = 2;
-    x[1 + 2 / 4 != 2] = 1;
+    t = foo();
     x[foo()] = 0; 
 
+    y = y + t;
     return 0;
 }

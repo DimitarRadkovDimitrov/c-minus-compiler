@@ -1,16 +1,27 @@
-/* Test 4: Match two sides of assignment and operands */
+/* Test 4: Invalid return types, test condition for if exp, and argument list */
 
-void foo(void)
+void func(void)
 {
+}
+
+int func2(void)
+{
+    return 1 < 2;
+}
+
+void func3(int x)
+{
+    return x; 
 }
 
 void main(void)
 {
-    int x;  
-    void y;
+    if (func() < 4)
+    {
+        func3(4);
+    }
 
-    x = 1 + 2 / 9 * 1 - 3;
-    x = 3 != 4;
-    y = 3;
-    x = x + foo();
+    func();
+    func2();
+    func3();
 }

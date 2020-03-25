@@ -64,19 +64,46 @@ public class SemanticAnalyzer implements AbsynVisitor
         }
     }
 
-    public void visit(AssignExp exp, int level)
+    public void visit(AssignExp assignExp, int level)
     {
-        exp.lhs.accept(this, level);
-        exp.rhs.accept(this, level);
+        assignExp.lhs.accept(this, level);
+        assignExp.rhs.accept(this, level);
 
-        if (!typeChecker.typeCheck(exp))
+        if (assignExp.lhs instanceof SimpleVar)
         {
-            SemanticError.voidExpressionResultError(exp.row + 1, exp.col + 1);
+            SimpleVar simpleVar = (SimpleVar) assignExp.lhs;
+            SimpleDec simpleDec = (SimpleDec) symbolTable.getSymbol(simpleVar.name).dec;
+
+            if (simpleDec.typ.typ == NameTy.VOID)
+            {
+                SemanticError.voidTypeAssignmentError(simpleVar.row + 1, simpleVar.col + 1);
+                return;
+            }
+        }
+        else if (assignExp.lhs instanceof IndexVar)
+        {
+            IndexVar indexVar = (IndexVar) assignExp.lhs;
+            ArrayDec arrayDec = (ArrayDec) symbolTable.getSymbol(indexVar.name).dec;
+            
+            if (arrayDec.typ.typ == NameTy.VOID)
+            {
+                SemanticError.voidTypeAssignmentError(indexVar.row + 1, indexVar.col + 1);
+                return;
+            }
+        }
+
+        if (!typeChecker.typeCheck(assignExp.rhs, true))
+        {
+            SemanticError.voidExpressionResultError(assignExp);
         }
     }
 
     public void visit(CallExp callExp, int level)
     {
+        SymbolTable.Declaration functionDec;
+        VarDecList params;
+        ExpList args;
+
         if (!symbolTable.isDefined(callExp.func))
         {
             SemanticError.undeclaredError(callExp.func, callExp.row + 1, callExp.col + 1);
@@ -87,9 +114,13 @@ public class SemanticAnalyzer implements AbsynVisitor
             callExp.args.accept(this, level);
         }
 
-        if (!typeChecker.typeCheck(callExp))
+        functionDec = symbolTable.getSymbol(callExp.func);
+        params = ((FunctionDec) functionDec.dec).params;
+        args = callExp.args;
+
+        if (!typeChecker.typeCheck(params, args))
         {
-            SemanticError.invalidFunctionCallError(callExp);
+            SemanticError.invalidFunctionCallError(callExp);;
         }
     }
 
@@ -191,11 +222,6 @@ public class SemanticAnalyzer implements AbsynVisitor
         {
             ifExp.els.accept(this, level);
         }
-        
-        if (!typeChecker.typeCheck(ifExp.test, true))
-        {
-            SemanticError.voidExpressionResultError(ifExp.row + 1, ifExp.col + 1);
-        }
     }
 
     public void visit(IndexVar indexVar, int level)
@@ -238,7 +264,7 @@ public class SemanticAnalyzer implements AbsynVisitor
 
         if (!typeChecker.typeCheck(opExp, true))
         {
-            SemanticError.voidExpressionResultError(opExp.row + 1, opExp.col + 1);
+            SemanticError.voidExpressionResultError(opExp);
         } 
     }
 
@@ -292,10 +318,5 @@ public class SemanticAnalyzer implements AbsynVisitor
     {
         whileExp.test.accept(this, level);
         whileExp.body.accept(this, level);
-
-        if (!typeChecker.typeCheck(whileExp.test, true))
-        {
-            SemanticError.voidExpressionResultError(whileExp.row + 1, whileExp.col + 1);
-        }
     }
 }

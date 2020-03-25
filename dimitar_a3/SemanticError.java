@@ -43,9 +43,15 @@ public class SemanticError
         printErrorMessage(row, col, message);
     }
 
-    public static void voidExpressionResultError(int row, int col)
+    public static void voidExpressionResultError(Exp exp)
     {
-        String message = String.format("Exp result is of type VOID. Expected INT.");
+        String message = String.format("%s result is of type VOID. Expected INT.", exp.getClass().getSimpleName());
+        printErrorMessage(exp.row + 1, exp.col + 1, message);
+    }
+
+    public static void voidTypeAssignmentError(int row, int col)
+    {
+        String message = String.format("Assignment to variable of type VOID.");
         printErrorMessage(row, col, message);
     }
 

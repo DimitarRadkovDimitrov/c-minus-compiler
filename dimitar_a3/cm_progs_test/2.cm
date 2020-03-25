@@ -1,4 +1,4 @@
-/* Test 2: Variable and Function redeclaration */
+/* Test 2: Use z without declaration, declare y twice in same block, return int from void function foo */
 
 int func(void)
 {    
@@ -6,13 +6,13 @@ int func(void)
     return z;
 }
 
-void func(void)
+void foo(void)
 {
+    return 0;
 }
 
 void main(void)
 {
-    int x;
     int y;
-    int x;
+    int y;
 }
