@@ -1,0 +1,115 @@
+************************************************************************
+Dimitar Dimitrov                                                 0922289
+CIS4650                                                               A4
+April 9, 2020
+************************************************************************
+
+C- compiler checkpoint 3. Code generator for parse tree.
+
+Compilation
+-----------
+    - In addition to all the .java files listed in the makefile, make 
+      sure that "cminus.flex", "cminus.cup" are both present in the root
+      directory.
+
+    - Compile in root directory with "make". This will generate all java
+      .class files necessary to run the programs.
+
+Usage
+-----
+    Run Sample Programs:
+        - Run with show tree visitor (checkpoint 1)
+            make <prog_name>_ast
+
+            ex) Run chkpt 1 for factorial program
+                make fac_ast
+
+        - Run with semantic analyzer (checkpoint 2)
+            make <prog_name>_sem
+
+            ex) Run chkpt 2 for factorial program
+                make fac_sem
+
+        - Run with code generator (checkpoint 3)
+            make <prog_name>
+
+            ex) Run chkpt 3 for factorial program
+                make fac
+
+    Run Provided Test Programs:
+        make test{FILENUM}
+
+        ex) Make and run test file number 5
+            make test5
+
+    Any Program:
+        - Run with show tree visitor
+            java -cp <CUP_PATH>.jar:. CM <PATH_TO_FILE>.cm -a
+
+        - Run with semantic analyzer
+            java -cp <CUP_PATH>.jar:. CM <PATH_TO_FILE>.cm -s
+
+        - Run with code generator
+            java -cp <CUP_PATH>.jar:. CM <PATH_TO_FILE>.cm -c
+            ./tm <PATH_TO_INPUT_FILE>.tm
+
+Test Plan (Sample Programs)
+-------------------
+    - Run CM.java with test programs in sample_progs/.
+    - Ensure compile without errors or warnings. 
+    - Manually examine any differences between program output and
+      expected output at runtime.
+
+      (1) fac.cm 
+      (2) gcd.cm
+      (3) sort.cm
+
+Test Plan (Test Programs)
+--------------------------
+    - Semantically analyze each program in test_progs/. Compare 
+      actual and expected output for symbol table. Verify errors.
+
+    (1.cm - 4.cm)
+        - Expected: Compile and run without errors
+
+    (5.cm)
+        - Expected:
+          Line 7 - void foo returns int
+          Line 15 - Missing semicolon
+          Line 19 - AssignExp is type void
+
+    (6.cm)
+        - Expected:
+          Line 17 - AssignExp is type void
+          IndexOutOfBoundsAbove Exception
+
+    (7.cm)
+        - Expected:
+          Line 8 - Invalid function return type
+          Line 26 - AssignExp is type void
+          Line 27 - Invalid types in argument list
+
+    (8.cm)
+        - Expected:
+          Line 19 - Invalid argument list (not enough)
+          Line 20 - Invalid argument list (syntactically incorrect)
+
+    (9.cm)
+        - Expected:
+          Line 9 - void gcd returns int
+          Line 18 - Redeclaration of variable x
+          Line 20 - Undeclared variable y
+          Line 20 - Invalid argument list (too many)
+          Line 21 - Invalid argument list (too many)
+          Line 22 - Invalid argument list (too many)
+
+    (0.cm)
+        - Expected:
+          Line 14 - Missing semicolon
+          Line 12 - void minloc returns int
+          Line 30 - int sort returns void
+          Line 37 - AssignExp is type void
+          Line 54 - Invalid argument list (too many)
+
+References
+- TM Simulator lecture slide deck from Fei Song at the University of Guelph

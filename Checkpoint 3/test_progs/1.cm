@@ -1,0 +1,9 @@
+/* 
+    Test 1 (No errors): 
+    - Single main with print function call
+*/
+
+void main(void)
+{
+    output(100);
+}

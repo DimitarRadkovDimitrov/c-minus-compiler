@@ -1,0 +1,28 @@
+/* 
+    Test 7:
+    - Invalid type for test function
+    - Assignment to void variable y 
+    - Return result of void function
+*/
+
+char test(int x, int y)
+{
+    if (x == y)
+    {
+        return output(1);
+    }
+    else
+    {
+        return output(0);
+    }
+}
+
+void main(void)
+{
+    int x;
+    void y;
+
+    x = 1;
+    y = 0;
+    test(x, y);
+}

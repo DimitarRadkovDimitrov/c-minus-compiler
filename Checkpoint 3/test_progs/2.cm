@@ -1,0 +1,29 @@
+/* 
+    Test 2 (No errors): 
+    - Scoping rules
+    - If statements
+    - While loops
+*/
+
+int x;
+
+void func(void)
+{
+    if (x > 0)
+    {
+        int x;
+        x = 10;
+        while (x <= 15)
+        {
+            output(x);
+            x = x + 1;
+        }
+    }
+    output(x);
+}
+
+void main(void)
+{
+    x = 1;
+    func();
+}

@@ -1,0 +1,23 @@
+/* 
+    Test 5: 
+    - Missing semicolon on line 15
+    - Return int from void func foo 
+    - Assign void to int variable y
+*/
+
+void foo(void)
+{
+    return 5;
+}
+
+void main(void)
+{
+    int x;
+    int y
+    int z;
+
+    x = 10;
+    y = foo();
+    z = x + y;
+    output(z);
+}

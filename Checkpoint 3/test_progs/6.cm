@@ -1,0 +1,19 @@
+/* 
+    Test 6: 
+    - Assign return of void function to variable
+    - Use return of void function to access array element 
+*/
+
+void func(void)
+{
+}
+
+void main(void)
+{
+    int x[2];
+    int index;
+    x[0] = 10;
+
+    index = func();
+    output(x[index]);
+}

@@ -1,0 +1,86 @@
+************************************************************************
+Dimitar Dimitrov                                                 0922289
+CIS4650                                                               A3
+March 25, 2020
+************************************************************************
+
+C- compiler checkpoint 2. Semantic analyzer for parse tree.
+
+Compilation
+-----------
+    - In addition to all the .java files listed in the makefile, make 
+      sure that "cminus.flex", "cminus.cup" are both present in the root
+      directory.
+
+    - Compile in root directory with "make". This will generate all java
+      .class files necessary to run the programs.
+
+Usage
+-----
+    Run Sample Programs:
+        make analyzer_{PROG_NAME}
+
+        ex) Make and run fac.cm program
+            make analyzer_fac
+
+    Run Provided Test Programs:
+        make test{FILENUM}
+
+        ex) Make and run test file number 5
+            make test5
+
+Further Changes
+---------------
+    If more time was provided I would:
+        - Throw and catch custom exceptions from SemanticAnalyzer.java.
+        - Modify AbstractVisitor interface to handle type checking, 
+          removing duplicated effort.
+
+Test Plan (Sample Programs)
+-------------------
+    - Run CM.java with test programs in cm_progs/.
+    - Ensure complete symbol table without errors or exceptions.
+    - Manually examine any differences between symbol table tokens and
+      blocks and actual tokens and blocks.
+
+    (1) fac.cm 
+    (2) gcd.cm
+    (3) selection_sort.cm
+
+Test Plan (Test Programs)
+--------------------------
+    - Semantically analyze each program in cm_progs_test/. Compare 
+      actual and expected output for symbol table. Verify errors.
+
+    (1.cm)
+        - Expected: Parse without errors
+
+    (2.cm)
+        - Expected: 
+          Line 10 - undeclared variable z
+          Line 14 - void foo() returns int
+          Line 22 - redeclaration of variable y
+
+    (3.cm) Missing semicolons and closing brace:
+        - Expected: 
+          Line 18 - Assignment to void t
+          Line 19 - Void index expression
+          Line 21 - OpExp is type void
+                  - AssignExp is type void
+    
+    (4.cm)
+        - Expected: 
+          Line 17 - void func3() returns int
+          Line 24 - OpExp is type void
+                  - IfExp test condition is type void
+          Line 31 - func3() arg list doesn't match params
+    
+    (5.cm)
+        - Expected:
+          Line 13 - undeclared variable x
+          Line 16 - void func2() returns int
+          Line 34 - AssignExp is type void
+          Line 36 - IfExp test condition is type void
+          Line 37 - WhileExp test condition is type void
+                  - OpExp is type void (x2)
+                  - Undeclared variable x

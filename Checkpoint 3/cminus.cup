@@ -1,0 +1,438 @@
+/*
+  File Name: cminus.cup
+*/
+   
+/* ----------------------Preliminary Declarations Section--------------------*/
+   
+import absyn.*;
+import java_cup.runtime.*;
+   
+parser code {:
+    
+    public void report_error(String message, Object info) 
+    {
+        StringBuffer m = new StringBuffer("Error");
+        if (info instanceof java_cup.runtime.Symbol) 
+        {
+            java_cup.runtime.Symbol s = ((java_cup.runtime.Symbol) info);
+
+            if (s.left >= 0) 
+            {                
+                m.append(" in line "+(s.left+1));   
+
+                if (s.right >= 0)    
+                {
+                    m.append(", column "+(s.right+1));
+                }                
+            }
+        }
+        m.append(" : " + message);
+        System.err.println(m);
+    }
+   
+    public void report_fatal_error(String message, Object info) 
+    {
+        report_error(message, info);
+        System.exit(1);
+    }
+:};
+   
+   
+/* ------------Declaration of Terminals and Non Terminals Section----------- */
+   
+terminal IF, ELSE, INT, RETURN, VOID, WHILE;
+terminal PLUS, MINUS, TIMES, DIVIDE, LT, LTE, GT, GTE, EQ, NOTEQ, ASSIGN;
+terminal SEMI, COMMA, LPAREN, RPAREN, LBRACK, RBRACK, LSQBRACK, RSQBRACK;
+terminal String ID, NUM;
+
+non terminal DecList program, dec_list;
+non terminal VarDec var_dec;
+non terminal FunctionDec func_dec;
+non terminal NameTy type_spec;
+non terminal VarDecList params, param_list, local_dec_list;
+non terminal VarDec param;
+non terminal CompoundExp cmp_state;
+non terminal ExpList state_list, args, arg_list;
+non terminal Exp statement, exp, simple_exp, add_exp, term, factor;
+
+precedence left error;
+precedence left INT, VOID;
+precedence right ASSIGN, ELSE;
+precedence nonassoc LT, LTE, GT, GTE, EQ, NOTEQ;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIVIDE;
+
+/* ----------------------------Grammar Section-------------------- */
+
+start with program;
+
+program        ::= dec_list:d_l
+                     {: RESULT = d_l; :}
+                  ;
+
+dec_list       ::= dec_list:d_l var_dec:v_d
+                     {: 
+                        DecList decList = d_l;
+                        while (decList.tail != null)
+                        {
+                           decList = decList.tail;
+                        }
+
+                        decList.tail = new DecList(v_d, null);
+                        RESULT = d_l; 
+                     :}
+                  |
+                   dec_list:d_l func_dec:f_d
+                     {: 
+                        DecList decList = d_l;
+                        while (decList.tail != null)
+                        {
+                           decList = decList.tail;
+                        }
+
+                        decList.tail = new DecList(f_d, null);
+                        RESULT = d_l; 
+                     :}
+                  |
+                   var_dec:v_d
+                     {: 
+                        RESULT = new DecList(v_d, null); 
+                     :}
+                  |
+                   func_dec:f_d
+                     {: 
+                        RESULT = new DecList(f_d, null); 
+                     :}
+                  |
+                   error:e
+                     {:
+                        String errorMsg = String.format("Invalid declaration list syntax (DecList) - line %d\n", eleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new DecList(new NilDec(eleft, eright), null);
+                     :}
+                  ;
+
+var_dec        ::= type_spec:t_s ID:id SEMI
+                     {: 
+                        RESULT = new SimpleDec(idleft, idright, t_s, id); 
+                     :}
+                  |
+                   type_spec:t_s ID:id LSQBRACK NUM:n RSQBRACK SEMI
+                     {: 
+                        RESULT = new ArrayDec(idleft, idright, t_s, id, new IntExp(nleft, nright, Integer.parseInt(n))); 
+                     :}
+                  |
+                   error:e ID:id SEMI
+                     {:
+                        String errorMsg = String.format("Invalid type syntax (NameTy) - line %d\n", eleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new SimpleDec(eleft, eright, new NameTy(eleft, eright, NameTy.ERROR), id);
+                     :}
+                  |
+                   error:e ID:id LSQBRACK NUM:n RSQBRACK SEMI
+                     {:
+                        String errorMsg = String.format("Invalid type syntax (NameTy) - line %d\n", eleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new ArrayDec(eleft, eright, new NameTy(eleft, eright, NameTy.ERROR), id, new IntExp(nleft, nright, Integer.parseInt(n))); 
+                     :}
+                  |
+                   type_spec:t_s ID:id error:e
+                     {:
+                        String errorMsg = String.format("Invalid variable declaration syntax (VarDec). Expected \";\" - line %d\n", t_sleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new SimpleDec(t_sleft, t_sright, t_s, id);
+                     :}
+                  |
+                   type_spec:t_s ID:id LSQBRACK NUM:n RSQBRACK error:e
+                     {: 
+                        String errorMsg = String.format("Invalid variable declaration syntax (VarDec). Expected \";\" - line %d\n", t_sleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new ArrayDec(t_sleft, t_sright, t_s, id, new IntExp(nleft, nright, Integer.parseInt(n))); 
+                     :}
+                  ;
+
+type_spec      ::= INT:i
+                     {:
+                        RESULT = new NameTy(ileft, iright, NameTy.INT);
+                     :}
+                  |
+                   VOID:v
+                     {:
+                        RESULT = new NameTy(vleft, vright, NameTy.VOID);  
+                     :}
+                  ;
+
+func_dec       ::= type_spec:t_s ID:id LPAREN params:p RPAREN cmp_state:c_s
+                     {: 
+                        RESULT = new FunctionDec(idleft, idright, t_s, id, p, c_s);
+                     :}
+                  |
+                   error:e ID:id LPAREN params:p RPAREN cmp_state:c_s
+                     {: 
+                        String errorMsg = String.format("Invalid type syntax (FunctionDec) - line %d\n", idleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new FunctionDec(eleft, eright, new NameTy(eleft, eright, NameTy.ERROR), id, p, c_s);
+                     :}
+                  ;
+
+params         ::= param_list:p_l
+                     {: RESULT = p_l; :}
+                  |
+                   VOID:v {::}
+                  ;
+
+param_list     ::= param_list:p_l COMMA param:p
+                     {: 
+                        VarDecList varDecList = p_l;
+                        while (varDecList.tail != null)
+                        {
+                           varDecList = varDecList.tail;
+                        }
+
+                        varDecList.tail = new VarDecList(p, null);
+                        RESULT = p_l; 
+                     :}
+                  |
+                   param:p
+                     {: 
+                        RESULT = new VarDecList(p, null); 
+                     :}
+                  ;
+
+param          ::= type_spec:t_s ID:id
+                     {: 
+                        RESULT = new SimpleDec(t_sleft, t_sright, t_s, id); 
+                     :}
+                  |
+                   type_spec:t_s ID:id LSQBRACK RSQBRACK
+                     {: 
+                        RESULT = new ArrayDec(t_sleft, t_sright, t_s, id, null); 
+                     :}
+                  ;
+
+cmp_state      ::= LBRACK:lb local_dec_list:l_d state_list:s_l RBRACK
+                     {: 
+                        RESULT = new CompoundExp(lbleft, lbright, l_d, s_l); 
+                     :}
+                  |
+                   LBRACK:lb local_dec_list:l_d state_list:s_l error:e
+                     {: 
+                        String errorMsg = String.format("Invalid statement syntax (CompoundExp) - line %d. Expected \"}\"\n", eleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new CompoundExp(lbleft, lbright, l_d, s_l); 
+                     :}
+                  ;
+
+local_dec_list ::= local_dec_list:l_d var_dec:v_d
+                     {: 
+                        VarDecList varDecList = l_d;
+                        while (varDecList.tail != null)
+                        {
+                           varDecList = varDecList.tail;
+                        }
+
+                        varDecList.tail = new VarDecList(v_d, null);
+                        RESULT = l_d; 
+                     :}
+                  | 
+                   var_dec:v_d
+                     {:
+                        RESULT = new VarDecList(v_d, null);
+                     :}
+                  | 
+                     {::}
+                  ;
+
+state_list     ::= state_list:s_l statement:s
+                     {:
+                        ExpList expList = s_l;
+                        while (expList.tail != null)
+                        {
+                           expList = expList.tail;
+                        }
+
+                        expList.tail = new ExpList(s, null);
+                        RESULT = s_l;  
+                     :}
+                  |
+                   statement:s
+                     {:
+                        RESULT = new ExpList(s, null);
+                     :}
+                  |
+                     {::}
+                  |
+                   error:e
+                     {:
+                        String errorMsg = String.format("Invalid expression syntax (ExpList) - line %d\n", eleft + 1);
+                        parser.report_error(errorMsg, e);
+                        RESULT = new ExpList(new NilExp(eleft, eright), null);
+                     :}
+                  ;
+
+statement      ::= exp:e SEMI
+                     {: RESULT = e; :}
+                  |
+                   SEMI:semi
+                     {: 
+                        RESULT = new NilExp(semileft, semiright); 
+                     :}
+                  |
+                   cmp_state:c_s 
+                     {: RESULT = c_s; :}
+                  |
+                   IF:i LPAREN exp:e RPAREN statement:s
+                     {: 
+                        RESULT = new IfExp(ileft, iright, e, s, null);
+                     :}
+                  |
+                   IF:i LPAREN exp:e RPAREN statement:s_1 ELSE statement:s_2
+                     {: 
+                        RESULT = new IfExp(ileft, iright, e, s_1, s_2);
+                     :}
+                  |
+                   WHILE:w LPAREN exp:e RPAREN statement:s
+                     {: 
+                        RESULT = new WhileExp(wleft, wright, e, s); 
+                     :}
+                  |
+                   RETURN:r exp:e SEMI
+                     {: 
+                        RESULT = new ReturnExp(rleft, rright, e);
+                     :}
+                  |
+                   RETURN:r SEMI:semi
+                     {:
+                        RESULT = new ReturnExp(rleft, rright, new NilExp(semileft, semiright));
+                     :}
+                  ;
+
+exp            ::= ID:id ASSIGN exp:e
+                     {: 
+                        RESULT = new AssignExp(idleft, idright, new SimpleVar(idleft, idright, id), e); 
+                     :}
+                  |
+                   ID:id LSQBRACK exp:e1 RSQBRACK ASSIGN exp:e2
+                     {: 
+                        RESULT = new AssignExp(idleft, idright, new IndexVar(idleft, idright, id, e1), e2);
+                     :}
+                  |
+                   simple_exp:e
+                     {: RESULT = e; :}
+                  ;
+   
+simple_exp     ::= add_exp:a_e1 LTE add_exp:a_e2
+                     {: 
+                        RESULT = new OpExp(a_e1left, a_e1right, a_e1, OpExp.LE, a_e2);
+                     :}
+                  |
+                   add_exp:a_e1 LT add_exp:a_e2
+                     {: 
+                        RESULT = new OpExp(a_e1left, a_e1right, a_e1, OpExp.LT, a_e2);
+                     :}
+                  |
+                   add_exp:a_e1 GT add_exp:a_e2
+                     {: 
+                        RESULT = new OpExp(a_e1left, a_e1right, a_e1, OpExp.GT, a_e2);
+                     :}
+                  |
+                   add_exp:a_e1 GTE add_exp:a_e2
+                     {: 
+                        RESULT = new OpExp(a_e1left, a_e1right, a_e1, OpExp.GE, a_e2);
+                     :}
+                  |
+                   add_exp:a_e1 EQ add_exp:a_e2
+                     {: 
+                        RESULT = new OpExp(a_e1left, a_e1right, a_e1, OpExp.EQ, a_e2);
+                     :}
+                  |
+                   add_exp:a_e1 NOTEQ add_exp:a_e2
+                     {: 
+                        RESULT = new OpExp(a_e1left, a_e1right, a_e1, OpExp.NE, a_e2);
+                     :}
+                  |
+                   add_exp:a_e
+                     {: RESULT = a_e; :}
+                  ;
+
+add_exp        ::= add_exp:a_e PLUS term:t
+                  {: 
+                     RESULT = new OpExp(a_eleft, a_eright, a_e, OpExp.PLUS, t);
+                  :}
+               |
+                add_exp:a_e MINUS term:t
+                  {: 
+                     RESULT = new OpExp(a_eleft, a_eright, a_e, OpExp.MINUS, t);
+                  :}
+               |
+                term:t
+                  {: RESULT = t; :}
+               ;
+
+term           ::= term:t TIMES factor:f
+                  {: 
+                     RESULT = new OpExp(tleft, tright, t, OpExp.MUL, f);
+                  :}
+               |
+                term:t DIVIDE factor:f
+                  {: 
+                     RESULT = new OpExp(tleft, tright, t, OpExp.DIV, f);
+                  :}
+               |
+                factor:f
+                  {: RESULT = f; :}
+               ;
+
+factor         ::= LPAREN exp:e RPAREN
+                  {: RESULT = e; :}
+               |
+                ID:id
+                  {:
+                     RESULT = new VarExp(idleft, idright, new SimpleVar(idleft, idright, id));
+                  :}
+               |
+                ID:id LSQBRACK exp:e RSQBRACK
+                  {:
+                     RESULT = new VarExp(idleft, idright, new IndexVar(idleft, idright, id, e));
+                  :}
+               |
+                ID:id LPAREN args:a RPAREN
+                  {: 
+                     RESULT = new CallExp(idleft, idright, id, a);
+                  :}
+               |
+                NUM:n
+                  {:
+                     RESULT = new IntExp(nleft, nright, Integer.parseInt(n));
+                  :}
+               ;
+
+args           ::= arg_list:a_l 
+                  {: RESULT = a_l; :}
+               |
+               ;
+
+arg_list       ::= arg_list:a_l COMMA exp:e 
+                  {:
+                     ExpList expList = a_l;
+                     while (expList.tail != null)
+                     {
+                        expList = expList.tail;
+                     }
+
+                     expList.tail = new ExpList(e, null);
+                     RESULT = a_l; 
+                  :}
+               |
+                exp:e 
+                  {: 
+                     RESULT = new ExpList(e, null); 
+                  :}
+               |
+                error:e
+                  {:
+                     String errorMsg = String.format("Invalid argument list syntax (ExpList) - line %d\n", eleft + 1);
+                     parser.report_error(errorMsg, e);
+                     RESULT = new ExpList(new NilExp(eleft, eright), null);
+                  :}
+               ;

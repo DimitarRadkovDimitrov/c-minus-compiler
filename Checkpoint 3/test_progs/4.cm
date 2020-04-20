@@ -1,0 +1,50 @@
+/* 
+    Test 4 (No errors): 
+    - Arrays and pass by reference (bubble sort) 
+*/
+
+void bubbleSort(int array[], int arraySize)
+{
+    int i;
+    i = 0;
+
+    while (i < arraySize)
+    {
+        int j;
+        j = i + 1;
+
+        while (j < arraySize)
+        {
+            if (array[i] > array[j])
+            {
+                int temp;
+                temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }   
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
+
+void main(void)
+{
+    int i;
+    int x[5];
+
+    x[0] = 4;
+    x[1] = 5;
+    x[2] = 1;
+    x[3] = 3;
+    x[4] = 2;
+
+    bubbleSort(x, 5);
+
+    i = 0;
+    while (i < 5)
+    {
+        output(x[i]);
+        i = i + 1;
+    }
+}

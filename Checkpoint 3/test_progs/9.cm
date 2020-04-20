@@ -1,0 +1,23 @@
+/* 
+    Test 9: 
+    - Return int from void function
+    - Declare x twice
+    - Invalid argument lists
+    - Undeclared variable y 
+    - Missing semicolon
+*/
+
+void gcd(int u, int v) 
+{
+    if (v == 0) return u;
+    else return gcd(v, u - u/v*v);
+}
+
+void main(void) 
+{
+    int x;
+    int x
+    x = input(0); 
+    y = input(1, 2, 3, 4);
+    output(gcd(x, y));
+}

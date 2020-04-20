@@ -1,0 +1,24 @@
+/* 
+    Test 8:
+    - Invalid argument list on line 19 (doesn't match params)
+    - Invalid argument list on line 20 (syntactically incorrect)
+*/
+
+int func(int x, int y)
+{
+    y = 10;
+    return y;
+}
+
+void main(void)
+{
+    int a;
+    int b;
+    int result;
+
+    a = func();
+    b = func(int a, int b);
+
+    result = a + b;
+    output(result);
+}
